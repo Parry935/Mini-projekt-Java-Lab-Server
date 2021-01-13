@@ -11,7 +11,6 @@ public class Server
 {
     public static void main(String[] args) throws IOException
     {
-        System.out.println("Server");
         ServerSocket serverSocket = new ServerSocket(9999);
         Semaphore semaphore = new Semaphore(1);
         DBContext db = new DBContext();
