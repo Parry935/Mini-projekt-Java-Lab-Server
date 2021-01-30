@@ -1,4 +1,6 @@
 
+import database.DBContext;
+
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -96,12 +98,20 @@ class ClientHandler extends Thread {
                         out.println(getMoviesWithId());
                         break;
 
+                    case "getMessages":
+                        out.println(getMessages());
+                        break;
+
                     case "checkUserInDbByEmail":
                             out.println(checkUserInDbByEmail(operation[1]));
                         break;
 
                     case "deleteMovieById":
                         out.println(deleteMovieById(operation[1]));
+                        break;
+
+                    case "deleteMesById":
+                        out.println(deleteMesById(operation[1]));
                         break;
 
                     case "deleteReservation":
@@ -120,9 +130,20 @@ class ClientHandler extends Thread {
                         break;
 
                     case "addMovieToDB":
-                        data = operation[1].split(" ", 3);
+                        data = operation[1].split("@", 3);
                         String convertDateMovie = data[0].replace("#", " ");
                         out.println(addMovieToDB(convertDateMovie, data[1],data[2]));
+                        break;
+
+                    case "upMovieToDB":
+                        data = operation[1].split("@", 4);
+                        String convertDateMovieUp = data[0].replace("#", " ");
+                        out.println(upMovieToDB(convertDateMovieUp, data[1],data[2],data[3]));
+                        break;
+
+                    case "addMesToDB":
+                        data = operation[1].split("#", 3);
+                        out.println(addMesToDB(data[0], data[1],data[2]));
                         break;
 
                     case "getPlaceForMovie":
@@ -369,6 +390,32 @@ class ClientHandler extends Thread {
         return result;
     }
 
+    private String getMessages() throws SQLException {
+
+        String result = "";
+
+        String date;
+        String title;
+        String text;
+        String id;
+
+        String sqlQuery = "Select * from mydatabase.messages";
+
+        PreparedStatement preparedStmt = connection.prepareStatement(sqlQuery);
+        ResultSet rs = preparedStmt.executeQuery();
+
+        while (rs.next()) {
+            id = rs.getString("id_mes");
+            date = rs.getString("date");
+            title = rs.getString("title");
+            text = rs.getString("text");
+
+            result += id + "@" + title + "@" + text + "@" + date + "#";
+        }
+
+        return result;
+    }
+
     private String getReservationForUser(String idUser) throws SQLException {
 
         String result = "";
@@ -474,10 +521,55 @@ class ClientHandler extends Thread {
         return "Succses";
     }
 
+    private String upMovieToDB(String date, String title, String type, String id) throws java.sql.SQLException {
+
+        String sql = "UPDATE mydatabase.movies SET date = ?, title = ?, type = ? where id = ?";
+
+        PreparedStatement preparedStmt = connection.prepareStatement(sql);
+
+        preparedStmt.setString(1, date);
+        preparedStmt.setString(2, title);
+        preparedStmt.setString(3, type);
+        preparedStmt.setString(4, id);
+
+        preparedStmt.execute();
+
+        return "Succses";
+    }
+
 
     private String deleteMovieById(String id) throws java.sql.SQLException {
 
         String sql = "DELETE FROM mydatabase.movies WHERE id= ?";
+
+        PreparedStatement preparedStmt = connection.prepareStatement(sql);
+
+        preparedStmt.setString(1, id);
+
+        preparedStmt.execute();
+
+        return "Succses";
+    }
+
+    private String addMesToDB(String title, String text, String date) throws java.sql.SQLException {
+
+        String sql = "INSERT INTO mydatabase.messages (title, text, date)"
+                + "VALUES (?, ?, ?)";
+
+        PreparedStatement preparedStmt = connection.prepareStatement(sql);
+
+        preparedStmt.setString(1, title);
+        preparedStmt.setString(2, text);
+        preparedStmt.setString(3, date);
+
+        preparedStmt.execute();
+
+        return "Succses";
+    }
+
+    private String deleteMesById(String id) throws java.sql.SQLException {
+
+        String sql = "DELETE FROM mydatabase.messages WHERE id_mes= ?";
 
         PreparedStatement preparedStmt = connection.prepareStatement(sql);
 
